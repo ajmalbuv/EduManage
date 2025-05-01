@@ -1,16 +1,13 @@
 import os
-import dj_database_url
-from dotenv import load_dotenv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = ""
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG")
+DEBUG = False
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".vercel.app"]
 
@@ -66,21 +63,12 @@ TEMPLATES = [
 WSGI_APPLICATION = "EduManage.wsgi.application"
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
 DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("POSTGRES_URL_NO_SSL"),
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=False,
-    )
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+    }
 }
-
 
 # Password validation
 
