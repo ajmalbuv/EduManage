@@ -3,7 +3,7 @@ name = "edumanage"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.10"  # safer for compatibility
+requires-python = "==3.12"
 dependencies = [
     "asgiref==3.8.1",
     "certifi==2024.7.4",
