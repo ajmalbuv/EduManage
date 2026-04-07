@@ -8,34 +8,34 @@ A college management system built using **Django** framework. It is designed for
 
 ## Installation
 
-Python and Django need to be installed
+Install [uv](https://astral.sh/uv/) and run the following commands to set up the environment:
 
-```bash
-pip install -r requirements.txt
+```powershell
+# Create a virtual environment and install dependencies
+uv venv
+uv pip install -r requirements.txt
 ```
 
 ## Usage
 
-Go to the EduManage folder and add a Postgres url in .env or uncomment the sqlite database lines for local db.
+1. Create a `.env` file in the root directory:
 
-### Example .env
-
-```
-SECRET_KEY ="##################################################" #generate a JWT Secret Online
-DEBUG = "True" # Keep False in deployment,True Only in develepment
-POSTGRES_URL_NO_SSL="postgres://username:password@HOSTIP:5432/DBName"
+```text
+SECRET_KEY="your-secret-key-here"
+DEBUG="True"
 ```
 
-### create SuperUser
+2. Initialize the database and run the server:
 
-```bash
-python manage.py createsuperuser
-```
+```powershell
+# Run migrations (creates db.sqlite3)
+uv run python manage.py migrate
 
-### Run Server
+# Create a SuperUser
+uv run python manage.py createsuperuser
 
-```bash
-python manage.py runserver
+# Start the development server
+uv run python manage.py runserver
 ```
 
 Then go to the browser and enter the url **http://127.0.0.1:8000/**
