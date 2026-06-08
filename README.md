@@ -49,7 +49,7 @@ You can access the django admin page by logging in using the superuser username 
 ## Users
 
 New students and teachers can be added through the admin page. A new user needs to be created for each.
-Default password for the teachers and students will be 'project123'.
+Default password for the teachers and students is configurable in `EduManage/settings.py` (Default: 'project123').
 
 The admin page is used to modify all models such as Students, Teachers, Departments, Courses, Classes etc.
 

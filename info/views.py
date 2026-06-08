@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -29,12 +31,12 @@ User = get_user_model()
 
 @login_required
 def index(request):
+    if request.user.is_superuser:
+        return redirect("/admin/")
     if request.user.is_teacher:
         return render(request, "info/t_homepage.html")
     if request.user.is_student:
         return render(request, "info/homepage.html")
-    if request.user.is_superuser:
-        return redirect("/admin/")
     return render(request, "info/logout.html")
 
 
@@ -131,39 +133,25 @@ def confirm(request, ass_c_id):
     ass = assc.assign
     cr = ass.course
     cl = ass.class_id
-    for i, s in enumerate(cl.student_set.all()):
-        status = request.POST[s.USN]
-        if status == "present":
-            status = "True"
-        else:
-            status = "False"
-        if assc.status == 1:
-            try:
-                a = Attendance.objects.get(
-                    course=cr, student=s, date=assc.date, attendanceclass=assc
-                )
-                a.status = status
-                a.save()
-            except Attendance.DoesNotExist:
-                a = Attendance(
-                    course=cr,
-                    student=s,
-                    status=status,
-                    date=assc.date,
-                    attendanceclass=assc,
-                )
-                a.save()
-        else:
-            a = Attendance(
+
+    with transaction.atomic():
+        for s in cl.student_set.all():
+            status = request.POST.get(s.USN)
+            if not status:
+                continue
+
+            status = "True" if status == "present" else "False"
+
+            Attendance.objects.update_or_create(
                 course=cr,
                 student=s,
-                status=status,
                 date=assc.date,
                 attendanceclass=assc,
+                defaults={"status": status},
             )
-            a.save()
-            assc.status = 1
-            assc.save()
+
+        assc.status = 1
+        assc.save()
 
     return HttpResponseRedirect(reverse("t_class_date", args=(ass.id,)))
 
@@ -202,20 +190,23 @@ def e_confirm(request, assign_id):
     ass = get_object_or_404(Assign, id=assign_id)
     cr = ass.course
     cl = ass.class_id
-    assc = ass.attendanceclass_set.create(status=1, date=request.POST["date"])
-    assc.save()
+    date = request.POST.get("date")
 
-    for i, s in enumerate(cl.student_set.all()):
-        status = request.POST[s.USN]
-        if status == "present":
-            status = "True"
-        else:
-            status = "False"
-        date = request.POST["date"]
-        a = Attendance(
-            course=cr, student=s, status=status, date=date, attendanceclass=assc
+    with transaction.atomic():
+        assc = ass.attendanceclass_set.create(status=1, date=date)
+
+        Attendance.objects.bulk_create(
+            [
+                Attendance(
+                    course=cr,
+                    student=s,
+                    status="True" if request.POST.get(s.USN) == "present" else "False",
+                    date=date,
+                    attendanceclass=assc,
+                )
+                for s in cl.student_set.all()
+            ]
         )
-        a.save()
 
     return HttpResponseRedirect(reverse("t_clas", args=(ass.teacher_id, 1)))
 
@@ -335,14 +326,17 @@ def marks_confirm(request, marks_c_id):
     ass = mc.assign
     cr = ass.course
     cl = ass.class_id
-    for s in cl.student_set.all():
-        mark = request.POST[s.USN]
-        sc = StudentCourse.objects.get(course=cr, student=s)
-        m = sc.marks_set.get(name=mc.name)
-        m.marks1 = mark
-        m.save()
-    mc.status = True
-    mc.save()
+
+    with transaction.atomic():
+        for s in cl.student_set.all():
+            mark = request.POST.get(s.USN)
+            if mark is not None:
+                sc = StudentCourse.objects.get(course=cr, student=s)
+                m = sc.marks_set.get(name=mc.name)
+                m.marks1 = mark
+                m.save()
+        mc.status = True
+        mc.save()
 
     return HttpResponseRedirect(reverse("t_marks_list", args=(ass.id,)))
 
@@ -385,18 +379,18 @@ def add_teacher(request):
         dob = request.POST["dob"]
         sex = request.POST["sex"]
 
-        # Creating a User with teacher username and password format
-        # USERNAME: firstname + underscore + unique ID
-        # PASSWORD: firstname + underscore + year of birth(YYYY)
-        user = User.objects.create_user(
-            # username=name.split(" ")[0].lower() + '_' + id,
-            # password=name.split(" ")[0].lower() +
-            # '_' + dob.replace("-", "")[:4]
-            username=id,
-            password="project123",
-        )
-        user.save()
+        if User.objects.filter(username=id).exists():
+            all_dept = Dept.objects.order_by("-id")
+            return render(
+                request,
+                "info/add_teacher.html",
+                {"all_dept": all_dept, "error": "Username already exists"},
+            )
 
+        user = User.objects.create_user(
+            username=id,
+            password=settings.DEFAULT_USER_PASSWORD,
+        )
         Teacher(user=user, id=id, dept=dept, name=name, sex=sex, DOB=dob).save()
         return redirect("/")
 
@@ -420,19 +414,18 @@ def add_student(request):
         dob = request.POST["dob"]
         sex = request.POST["sex"]
 
-        # Creating a User with student username and password format
-        # USERNAME: firstname + underscore + last 3 digits of USN
-        # PASSWORD: firstname + underscore + year of birth(YYYY)
-        user = User.objects.create_user(
-            # username=name.split(" ")[0].lower() + '_' +
-            # request.POST['usn'][-3:],
-            # password=name.split(" ")[0].lower() +
-            # '_' + dob.replace("-", "")[:4]
-            username=usn,
-            password="project123",
-        )
-        user.save()
+        if User.objects.filter(username=usn).exists():
+            all_classes = Class.objects.order_by("-id")
+            return render(
+                request,
+                "info/add_student.html",
+                {"all_classes": all_classes, "error": "Username (USN) already exists"},
+            )
 
+        user = User.objects.create_user(
+            username=usn,
+            password=settings.DEFAULT_USER_PASSWORD,
+        )
         # Creating a new student instance with given data and saving it.
         Student(
             user=user, USN=usn, class_id=class_id, name=name, sex=sex, DOB=dob

@@ -311,55 +311,65 @@ days = {
 
 
 def create_attendance(sender, instance, **kwargs):
-    if kwargs["created"]:
-        try:
-            attendance_range = AttendanceRange.objects.all()[:1].get()
-            start_date = attendance_range.start_date
-            end_date = attendance_range.end_date
-        except AttendanceRange.DoesNotExist:
+    if kwargs.get("created"):
+        attendance_range = AttendanceRange.objects.first()
+        if not attendance_range:
             # Create a default range if none exists
             today = date.today()
-            start_date = today
-            # Default to one year from today
-            end_date = today + timedelta(weeks=20)
-            AttendanceRange.objects.create(start_date=start_date, end_date=end_date)
+            attendance_range = AttendanceRange.objects.create(
+                start_date=today, end_date=today + timedelta(weeks=20)
+            )
 
+        start_date = attendance_range.start_date
+        end_date = attendance_range.end_date
+        target_day = days.get(instance.day)
+
+        if target_day is None:
+            return
+
+        # Fetch existing dates to avoid duplicates
+        existing_dates = set(
+            AttendanceClass.objects.filter(assign=instance.assign).values_list(
+                "date", flat=True
+            )
+        )
+
+        new_classes = []
         for single_date in daterange(start_date, end_date):
-            if single_date.isoweekday() == days[instance.day]:
-                AttendanceClass.objects.get_or_create(
-                    date=single_date, assign=instance.assign, defaults={"status": 0}
-                )
+            if single_date.isoweekday() == target_day:
+                if single_date not in existing_dates:
+                    new_classes.append(
+                        AttendanceClass(
+                            date=single_date, assign=instance.assign, status=0
+                        )
+                    )
+
+        if new_classes:
+            AttendanceClass.objects.bulk_create(new_classes)
 
 
 def create_marks(sender, instance, **kwargs):
-    if kwargs["created"]:
-        if hasattr(instance, "name"):
-            ass_list = instance.class_id.assign_set.all()
-            for ass in ass_list:
-                try:
-                    StudentCourse.objects.get(student=instance, course=ass.course)
-                except StudentCourse.DoesNotExist:
-                    sc = StudentCourse(student=instance, course=ass.course)
-                    sc.save()
-                    sc.marks_set.create(name="Internal test 1")
-                    sc.marks_set.create(name="Internal test 2")
-                    sc.marks_set.create(name="Assignment 1")
-                    sc.marks_set.create(name="Assignment 2")
-                    sc.marks_set.create(name="Semester End Exam")
-        elif hasattr(instance, "course"):
-            stud_list = instance.class_id.student_set.all()
-            cr = instance.course
-            for s in stud_list:
-                try:
-                    StudentCourse.objects.get(student=s, course=cr)
-                except StudentCourse.DoesNotExist:
-                    sc = StudentCourse(student=s, course=cr)
-                    sc.save()
-                    sc.marks_set.create(name="Internal test 1")
-                    sc.marks_set.create(name="Internal test 2")
-                    sc.marks_set.create(name="Assignment 1")
-                    sc.marks_set.create(name="Assignment 2")
-                    sc.marks_set.create(name="Semester End Exam")
+    if kwargs.get("created"):
+        if isinstance(instance, Student):
+            assigns = instance.class_id.assign_set.all()
+            for ass in assigns:
+                sc, created = StudentCourse.objects.get_or_create(
+                    student=instance, course=ass.course
+                )
+                if created:
+                    Marks.objects.bulk_create(
+                        [Marks(studentcourse=sc, name=name[0]) for name in test_name]
+                    )
+        elif isinstance(instance, Assign):
+            students = instance.class_id.student_set.all()
+            for s in students:
+                sc, created = StudentCourse.objects.get_or_create(
+                    student=s, course=instance.course
+                )
+                if created:
+                    Marks.objects.bulk_create(
+                        [Marks(studentcourse=sc, name=name[0]) for name in test_name]
+                    )
 
 
 def create_marks_class(sender, instance, **kwargs):

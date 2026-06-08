@@ -112,6 +112,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles_build", "static")
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
+#Quick add student/teacher password
+DEFAULT_USER_PASSWORD = "project123"
+
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_AUTHENTICATION_CLASSES": (

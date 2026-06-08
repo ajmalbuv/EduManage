@@ -84,6 +84,8 @@
                             <a class="nav-link text-capitalize" href="{% url 'index' %}">{{ request.user.student.name }}</a>
                         {% elif request.user.is_teacher %}
                             <a class="nav-link text-capitalize" href="{% url 'index' %}">{{ request.user.teacher.name }}</a>
+                        {% elif request.user.is_superuser %}
+                            <a class="nav-link text-capitalize" href="{% url 'index' %}">Admin: {{ request.user.username }}</a>
                         {% endif %}
                     </li>
                     <li class="nav-item">

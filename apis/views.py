@@ -22,7 +22,6 @@ class DetailView(APIView):
             # fetching token sent in request header by the user.
             us = Token.objects.filter(user=request.user)
             if us:  # checking for authentication using token authentication.
-
                 # getting user from in-built user model class.
                 user = User.objects.filter(auth_token=us[0]).first()
                 # getting student from student model by filtering based on user that we got.
