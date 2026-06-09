@@ -51,7 +51,7 @@ class User(AbstractUser):
 
 
 class Dept(models.Model):
-    id = models.CharField(primary_key="True", max_length=100)
+    id = models.CharField(primary_key=True, max_length=100)
     name = models.CharField(max_length=200)
 
     def __str__(self):
@@ -60,7 +60,7 @@ class Dept(models.Model):
 
 class Course(models.Model):
     dept = models.ForeignKey(Dept, on_delete=models.CASCADE)
-    id = models.CharField(primary_key="True", max_length=50)
+    id = models.CharField(primary_key=True, max_length=50)
     name = models.CharField(max_length=50)
     shortname = models.CharField(max_length=50, default="X")
 
@@ -70,7 +70,7 @@ class Course(models.Model):
 
 class Class(models.Model):
     # courses = models.ManyToManyField(Course, default=1)
-    id = models.CharField(primary_key="True", max_length=100)
+    id = models.CharField(primary_key=True, max_length=100)
     dept = models.ForeignKey(Dept, on_delete=models.CASCADE)
     section = models.CharField(max_length=100)
     sem = models.IntegerField()
@@ -86,7 +86,7 @@ class Class(models.Model):
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE, default=1)
-    USN = models.CharField(primary_key="True", max_length=100)
+    USN = models.CharField(primary_key=True, max_length=100)
     name = models.CharField(max_length=200)
     sex = models.CharField(max_length=50, choices=sex_choice, default="Male")
     DOB = models.DateField(default="1998-01-01")
