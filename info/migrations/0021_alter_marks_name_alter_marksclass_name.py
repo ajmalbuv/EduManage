@@ -4,20 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('info', '0020_alter_assigntime_period'),
+        ("info", "0020_alter_assigntime_period"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='marks',
-            name='name',
-            field=models.CharField(choices=[('Internal test 1', 'Internal test 1'), ('Internal test 2', 'Internal test 2'), ('Assignment 1', 'Assignment 1'), ('Assignment 2', 'Assignment 2'), ('Semester End Exam', 'Semester End Exam')], default='Internal test 1', max_length=50),
+            model_name="marks",
+            name="name",
+            field=models.CharField(
+                choices=[
+                    ("Internal test 1", "Internal test 1"),
+                    ("Internal test 2", "Internal test 2"),
+                    ("Assignment 1", "Assignment 1"),
+                    ("Assignment 2", "Assignment 2"),
+                    ("Semester End Exam", "Semester End Exam"),
+                ],
+                default="Internal test 1",
+                max_length=50,
+            ),
         ),
         migrations.AlterField(
-            model_name='marksclass',
-            name='name',
-            field=models.CharField(choices=[('Internal test 1', 'Internal test 1'), ('Internal test 2', 'Internal test 2'), ('Assignment 1', 'Assignment 1'), ('Assignment 2', 'Assignment 2'), ('Semester End Exam', 'Semester End Exam')], default='Internal test 1', max_length=50),
+            model_name="marksclass",
+            name="name",
+            field=models.CharField(
+                choices=[
+                    ("Internal test 1", "Internal test 1"),
+                    ("Internal test 2", "Internal test 2"),
+                    ("Assignment 1", "Assignment 1"),
+                    ("Assignment 2", "Assignment 2"),
+                    ("Semester End Exam", "Semester End Exam"),
+                ],
+                default="Internal test 1",
+                max_length=50,
+            ),
         ),
     ]

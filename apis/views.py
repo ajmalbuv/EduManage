@@ -5,7 +5,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 import apis.serializers as api_ser
-from info.models import *
+from info.models import (
+    Assign,
+    AssignTime,
+    AttendanceTotal,
+    Student,
+    StudentCourse,
+    User,
+)
 
 
 class DetailView(APIView):
@@ -24,7 +31,8 @@ class DetailView(APIView):
             if us:  # checking for authentication using token authentication.
                 # getting user from in-built user model class.
                 user = User.objects.filter(auth_token=us[0]).first()
-                # getting student from student model by filtering based on user that we got.
+                # getting student from student model by filtering based on user
+                # that we got.
                 details = Student.objects.get(user=user)
                 serializer = api_ser.DetailSerializer(
                     details, context={"request": request}
@@ -60,7 +68,8 @@ class AttendanceView(APIView):
             if token:  # checking for authentication using token authentication.
                 # getting user from in-built user model class.
                 user = User.objects.get(auth_token=token)
-                # getting student from student model by filtering based on user that we got.
+                # getting student from student model by filtering based on user
+                # that we got.
                 stud = Student.objects.get(user=user)
                 # using ass_list and att_list we get the classes assigned to that user
                 ass_list = Assign.objects.filter(class_id_id=stud.class_id)
@@ -83,7 +92,8 @@ class AttendanceView(APIView):
                     status=status.HTTP_200_OK,
                 )
             else:
-                # returning not authenticated message when user isn't authenticated with status code 400.
+                # returning not authenticated message when user isn't authenticated
+                # with status code 400.
                 return Response(
                     {"message": "User not authenticated"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -111,7 +121,8 @@ class MarksView(APIView):
 
                 # using ass_list and sc_list we retrieve all the subjects assigned
                 ass_list = Assign.objects.filter(class_id_id=stud.class_id)
-                # and then their respective marks. Store them in a dictionary and return it to the user.
+                # and then their respective marks.
+                # Store them in a dictionary and return it to the user.
                 sc_list = []
                 for ass in ass_list:
                     sc = StudentCourse.objects.get(student=stud, course=ass.course)

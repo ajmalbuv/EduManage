@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("info", "0018_alter_assign_id_alter_assigntime_id_and_more"),
     ]

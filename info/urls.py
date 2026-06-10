@@ -12,7 +12,6 @@ urlpatterns = [
         name="attendance_detail",
     ),
     path("student/<slug:class_id>/timetable/", views.timetable, name="timetable"),
-    # path('student/<slug:class_id>/search/', views.student_search, name='student_search'),
     path("student/<slug:stud_id>/marks_list/", views.marks_list, name="marks_list"),
     path(
         "teacher/<slug:teacher_id>/<int:choice>/Classes/", views.t_clas, name="t_clas"

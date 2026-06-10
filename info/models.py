@@ -79,8 +79,7 @@ class Class(models.Model):
         verbose_name_plural = "classes"
 
     def __str__(self):
-        d = Dept.objects.get(name=self.dept)
-        return "%s : %d %s" % (d.name, self.sem, self.section)
+        return f"{self.dept.name} : {self.sem} {self.section}"
 
 
 class Student(models.Model):
@@ -116,10 +115,7 @@ class Assign(models.Model):
         unique_together = (("course", "class_id", "teacher"),)
 
     def __str__(self):
-        cl = Class.objects.get(id=self.class_id_id)
-        cr = Course.objects.get(id=self.course_id)
-        te = Teacher.objects.get(id=self.teacher_id)
-        return "%s : %s : %s" % (te.name, cr.shortname, cl)
+        return f"{self.teacher.name} : {self.course.shortname} : {self.class_id}"
 
 
 class AssignTime(models.Model):
@@ -128,6 +124,9 @@ class AssignTime(models.Model):
         max_length=50, choices=time_slots, default="11:10 - 12:10"
     )
     day = models.CharField(max_length=15, choices=DAYS_OF_WEEK)
+
+    def __str__(self):
+        return f"{self.assign} : {self.day} : {self.period}"
 
 
 class AttendanceClass(models.Model):
@@ -138,6 +137,9 @@ class AttendanceClass(models.Model):
     class Meta:
         verbose_name = "Attendance"
         verbose_name_plural = "Attendance"
+
+    def __str__(self):
+        return f"{self.assign} : {self.date}"
 
 
 class Attendance(models.Model):
@@ -150,9 +152,7 @@ class Attendance(models.Model):
     status = models.BooleanField(default="True")
 
     def __str__(self):
-        sname = Student.objects.get(name=self.student)
-        cname = Course.objects.get(name=self.course)
-        return "%s : %s" % (sname.name, cname.shortname)
+        return f"{self.student.name} : {self.course.shortname}"
 
 
 class AttendanceTotal(models.Model):
@@ -161,6 +161,9 @@ class AttendanceTotal(models.Model):
 
     class Meta:
         unique_together = (("student", "course"),)
+
+    def __str__(self):
+        return f"{self.student.name} : {self.course.shortname}"
 
     @property
     def att_class(self):
@@ -215,9 +218,7 @@ class StudentCourse(models.Model):
         verbose_name_plural = "Marks"
 
     def __str__(self):
-        sname = Student.objects.get(name=self.student)
-        cname = Course.objects.get(name=self.course)
-        return "%s : %s" % (sname.name, cname.shortname)
+        return f"{self.student.name} : {self.course.shortname}"
 
     def get_cie(self):
         # Fetch the marks for assignments and internal tests
@@ -257,6 +258,9 @@ class Marks(models.Model):
     class Meta:
         unique_together = (("studentcourse", "name"),)
 
+    def __str__(self):
+        return f"{self.studentcourse} : {self.name}"
+
     @property
     def total_marks(self):
         if self.name == "Semester End Exam":
@@ -276,6 +280,9 @@ class MarksClass(models.Model):
     class Meta:
         unique_together = (("assign", "name"),)
 
+    def __str__(self):
+        return f"{self.assign} : {self.name}"
+
     @property
     def total_marks(self):
         if self.name == "Semester End Exam":
@@ -290,6 +297,9 @@ class MarksClass(models.Model):
 class AttendanceRange(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
+
+    def __str__(self):
+        return f"{self.start_date} - {self.end_date}"
 
 
 # Triggers
