@@ -14,12 +14,14 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
+# Allowed Hosts
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    ".vercel.app",
-    "ajmalbasheer.duckdns.org",
-    "129.159.20.194",
+    host.strip()
+    for host in os.environ.get(
+        "ALLOWED_HOSTS",
+        "localhost,127.0.0.1,.vercel.app,ajmalbasheer.duckdns.org,129.159.20.194",
+    ).split(",")
+    if host.strip()
 ]
 
 AUTH_USER_MODEL = "info.User"
@@ -44,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -75,18 +78,27 @@ WSGI_APPLICATION = "EduManage.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("POSTGRES_URL_NO_SSL"),
+        default=os.environ.get("DATABASE_URL")
+        or os.environ.get("POSTGRES_URL_NO_SSL")
+        or f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
         conn_health_checks=True,
         ssl_require=False,
     )
 }
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "True") == "True"
 CSRF_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "True") == "True"
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True") == "True"
+SECURE_REDIRECT_EXEMPT = [r"^health/?$"]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-CSRF_TRUSTED_ORIGINS = ["https://ajmalbasheer.duckdns.org"]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "CSRF_TRUSTED_ORIGINS", "https://ajmalbasheer.duckdns.org"
+    ).split(",")
+    if origin.strip()
+]
 
 # Password validation
 
@@ -125,7 +137,16 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = (BASE_DIR / "static",)
-STATIC_ROOT = "/home/ubuntu/staticfiles"
+STATIC_ROOT = os.environ.get("STATIC_ROOT", "/home/ubuntu/staticfiles")
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"

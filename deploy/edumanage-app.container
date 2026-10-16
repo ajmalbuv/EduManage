@@ -1,0 +1,22 @@
+[Unit]
+Description=EduManage Web Application
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+ContainerName=edumanage-app
+Image=localhost/edumanage:latest
+EnvironmentFile=%h/.config/edumanage/app.env
+# Change 8100 to any port you like on your host machine
+PublishPort=127.0.0.1:8100:8000
+HealthCmd=curl -fsS http://127.0.0.1:8000/health/ | grep -q '"status":"ok"' || exit 1
+HealthInterval=15s
+HealthRetries=3
+HealthTimeout=5s
+
+[Service]
+Restart=always
+TimeoutStartSec=180
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,16 @@
+# /etc/caddy/Caddyfile
+# Replace 'edumanage.yourdomain.com' with your domain (e.g., ajmalbasheer.duckdns.org)
+# Replace '8100' with your host port if you changed PublishPort in ~/.config/containers/systemd/edumanage-app.container
+
+ajmalbasheer.duckdns.org {
+    encode zstd gzip
+
+    # Reverse proxy to EduManage application running in rootless Podman
+    # Django + WhiteNoise automatically serves compressed static assets and dynamic requests
+    reverse_proxy 127.0.0.1:8100 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}

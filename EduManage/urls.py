@@ -1,8 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.http import JsonResponse
 from django.urls import include, path
 
 urlpatterns = [
+    path("health/", lambda request: JsonResponse({"status": "ok"}), name="health"),
+    path("health", lambda request: JsonResponse({"status": "ok"})),
     path("admin/", admin.site.urls),
     path("", include("info.urls")),
     path("info/", include("info.urls")),
